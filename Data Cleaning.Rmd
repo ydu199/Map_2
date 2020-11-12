@@ -1,0 +1,36 @@
+---
+title: "Data Clean"
+author:"Yu Du'
+output: pdf_document
+---
+
+#Data Cleaning Process:
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(magrittr)
+library(dplyr)
+```
+
+#Read Data From FEMA website,selecting year on 2009-2020 and incident type on Hurricane.
+```{r }
+Public<- read.csv("/Users/duyu/Desktop/MA615/Mapping/PublicAssistanceFundedProjectsDetails.csv")
+Hur<-Public %>% filter(incidentType == "Hurricane")
+Hur<-Hur%>% separate(declarationDate, c('year','month', 'day'), sep = "-")
+```
+
+
+```{r }
+Hur<-Hur%>%filter(year>2008)
+Hur
+Hur<-Hur%>%select(-c(day,month,incidentType,applicationTitle,applicantId, damageCategoryCode,hash,lastRefresh,id))
+```
+
+```{r}
+Hur<-Hur%>%select(-c(obligatedDate))
+Hur
+```
+```{r}
+write.csv(Hur,"hur.csv")
+```
+
