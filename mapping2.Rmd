@@ -13,6 +13,7 @@ library(magrittr)
 
 
 #Introduction:
+
 #Read Data: The data is saved from the data cleaning process.rmd.
 The Data is collected from the FEMA website.
 ```{r }
