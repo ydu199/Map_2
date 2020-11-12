@@ -1,0 +1,95 @@
+---
+title: "Presentation"
+author: "Yu Du"
+output: revealjs::revealjs_presentation
+---
+
+## Introduction
+
+- The data is collected from the FEMA website
+- The orginial Data contains 22 columns with over 700,000 rows
+- very large dataset
+
+
+## Important Columns for mapping
+
+- Variables: year, state,county
+- Outcomes: project Amount, federal share obligated
+- project Amount:The estimated total cost of the Public Assistance grant project in dollars
+- federal share obligated:The Public Assistance grant funding available to the grantee (State) in dollars
+
+
+## Goal
+
+- Calculate the total of two outcomes (project Amount, federal share obligated) in each county from 2009 to 2020
+- Look at if there is any trend
+- Compare two maps
+
+## Data Cleaning Steps
+
+step one 
+- choose the 'Hurricane' as the incident of type
+- the incident type will affect the types of assistance available 
+
+
+step two
+- choose the year from 2009 to 2020
+
+
+
+
+## Plot the total project Amount from 2009 to 2020
+
+```{r,echo=FALSE,message=FALSE}
+library(ggplot2)
+library(plotly)
+library(maps)
+state<-map_data("state")
+hurr1<-read.csv("/Users/duyu/Desktop/MA615/Mapping/Mapping/hurrp.csv")
+hurr1<-hurr1[,2:9]
+ hurr1$project<-as.numeric(hurr1$project)
+  hurr1$Amount=cut(hurr1$project, breaks = c(0,2e+02,2e+04,2e+06,2e+08,2e+10),
+                    include.lowest = TRUE)
+    ggplot1<-ggplot() + geom_polygon(data =hurr1, aes(long, lat, group = group,
+                                                    fill = Amount), 
+                                   color = "grey", size = 0.2, alpha = 1.6) + 
+      geom_polygon(data = state, aes(long,lat, group = group),
+                   color = "black", fill = "white", size = 0.2, alpha = 0.3) +
+      scale_fill_brewer(palette = "Blues") +
+      ggtitle("Total Project Amount in 2009-2020") +theme(plot.title = element_text(hjust = 0.5))
+    ggplot1
+```
+
+
+## Plot the total federal share obligated from 2009 to 2020.
+
+```{r, echo=FALSE}
+hurr2<-read.csv("/Users/duyu/Desktop/MA615/Mapping/Mapping/hurrd.csv")
+hurr2<-hurr2[,2:9]
+ hurr2$federal<-as.numeric(hurr2$federal)
+    hurr2$Amount = cut(hurr2$federal, breaks = c(0,2e+02,2e+04,2e+06,2e+08,2e+10),
+                       include.lowest = TRUE)
+    
+    ggplot2<-ggplot() + geom_polygon(data =hurr2, aes(x = long, y = lat, group = group,
+                                                    fill = Amount), 
+                                   color = "grey", size = 0.2, alpha = 1.6) + 
+      geom_polygon(data = state, aes(x = long, y = lat, group = group),
+                   color = "black", fill = "white", size = 0.2, alpha = 0.3) +
+      scale_fill_brewer(palette = "Blues") +
+      ggtitle("Total Federal Share Obligated in 2009-2020") +theme(plot.title = element_text(hjust = 0.5))
+    ggplot2
+```
+
+## ShinyApp
+contains ggplotly maps: https://ydu199.shinyapps.io/Mapping/
+
+## Results/Observations
+- The southeast US suffers the incident 'Hurricane'.
+- Coastal counties tend to have higher project amount and federal share obligated from 2009 to 2020.
+- In some counties, total project amount is higher than total federal share obligated from 2009 to 2020.
+
+## What can improve or add
+- can set time intervals in 2009-2020 to look at the data more specifically.
+- can look at other incidents to find if some might have the similar result.
+
+## Thanks
