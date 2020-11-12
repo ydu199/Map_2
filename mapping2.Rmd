@@ -1,0 +1,164 @@
+---
+- title:"Map2" author:"Yu Du"
+---
+
+```{r setup, include=FALSE,warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo =FALSE,warning = FALSE,
+               message = FALSE)
+library(knitr)
+library(dplyr)
+library(tidyverse)
+library(magrittr)
+```
+
+
+#Introduction:
+#Read Data: The data is saved from the data cleaning process,rmd.
+The Data is collected from the FEMA website.
+```{r }
+hurr<-read.csv("/Users/duyu/Desktop/MA615/hur.csv")
+```
+
+#Adding fips to the data.
+```{r}
+library(maps)
+data(county.fips)
+county.fips1 <- county.fips %>% separate(polyname, c("state", "county"), sep = ",")
+#Make sure they all beginning with lower case.
+county.fips1$state <- tolower(county.fips1$state)
+county.fips1$county <- tolower(county.fips1$county)
+
+hurr$state <- tolower(hurr$state)
+hurr$county <- tolower(hurr$county)
+# Add the fips into our funding data set
+hurr <- left_join(hurr, county.fips1, by = c("county", "state"))
+```
+
+```{r}
+county <- (map_data("county"))
+county<-county%>%rename(state=region,county=subregion)
+#county
+state <- map_data("state")
+```
+
+#Calculating the sum of project Amount for each county in 2009-2020.
+```{r}
+hurrp<- hurr %>% 
+  group_by(fips, state, county, year) %>% summarize(project = sum(projectAmount))
+
+```
+
+
+```{r}
+hurrp <- right_join(hurrp, county, by = c("county", "state"))
+head(hurrp,8)
+```
+
+#Using ggplot to draw a map for the total project amount of each state.
+```{r}
+hurrp<-na.omit(hurrp)
+write.csv(hurrp,"hurrp.csv")
+#max(hurrp$project)
+#min(hurrp$project)
+hurrp$project<-as.numeric(hurrp$project)
+hurrp$Amount= cut(hurrp$project, breaks = c(0,2e+02,2e+04,2e+06,2e+08,2e+10),
+                    include.lowest = TRUE)
+
+plot1<-ggplot() + geom_polygon(data =hurrp, aes(long, lat, group = group,
+                                                fill = Amount), 
+                        color = "grey", size = 0.2, alpha = 1.6) + 
+  geom_polygon(data = state, aes(long,lat, group = group),
+                 color = "black", fill = "white", size = 0.2, alpha = 0.3) +
+      scale_fill_brewer(palette = "Blues") +
+  ggtitle("Project Amount in 2009-2020") +theme(plot.title = element_text(hjust = 0.5))
+plot1
+```
+
+#Calculating the sum of federalShareObligated in 2009-2020.
+```{r}
+hurrd<- hurr %>% 
+  group_by(fips, state, county, year) %>% summarize(federal = sum(federalShareObligated))
+head(hurrd,8)
+```
+
+
+#Using ggplot to draw a map for the total federal share Obligrated of each state.
+```{r}
+hurrd <- right_join(hurrd, county, by = c("county", "state"))
+hurrd<-na.omit(hurrd)
+write.csv(hurrd,"hurrd.csv")
+hurrd$federal<-as.numeric(hurrd$federal)
+hurrd$Amount = cut(hurrd$federal, breaks = c(0,2e+03,2e+05,2e+07,2e+09,2e+10),
+                    include.lowest = TRUE)
+
+plot2<-ggplot() + geom_polygon(data =hurrd, aes(x = long, y = lat, group = group,
+                                                fill = Amount), 
+                        color = "grey", size = 0.2, alpha = 1.6) + 
+  geom_polygon(data = state, aes(x = long, y = lat, group = group),
+                 color = "black", fill = "white", size = 0.2, alpha = 0.3) +
+      scale_fill_brewer(palette = "Blues") +
+  ggtitle("Sum of Federal Share Obligated in 2009-2020") +theme(plot.title = element_text(hjust = 0.5))
+plot2
+```
+
+#Using ggplotly
+Now,I am trying to use ggplotly to show a clearer map for the previous dataframes.
+```{r}
+#This map is the same as the first map.
+library(plotly)
+library(dplyr)
+state<-state
+#county
+#state
+plot4<-ggplot(data =hurrp, aes(long, lat,group = group)) + geom_polygon(aes(
+                                                fill = Amount), color = alpha("white",1/2), size = 0.05) + 
+  geom_polygon(data = state,color = "grey", fill=NA) +
+      scale_fill_brewer(palette = "Blues") +
+  ggtitle("Total Project Amount from 2009 to 2020") +theme_void()
+fig<-ggplotly(plot4)
+fig
+
+```
+
+
+```{r}
+#This map is improved from the second map.
+state<-state
+#county
+#state
+plot5<-ggplot(data =hurrd, aes(long, lat, group = group)) + geom_polygon(aes(
+                                                fill = Amount), color = alpha("white",1/2), size = 0.05) + 
+  geom_polygon(data = state,color = "grey", fill=NA) +
+      scale_fill_brewer(palette = "Blues") +
+  ggtitle("Total Federal Share Obligated 2009-2020") +theme_void()
+fig<-ggplotly(plot5)
+fig
+```
+
+```{r}
+#citation("dplyr")
+#citation("tidyverse")
+#citation("magrittr")
+#citation("maps")
+#citation("plotly")
+```
+
+References
+
+Hadley Wickham, Romain François, Lionel Henry and Kirill Müller (2020). dplyr: A Grammar of Data
+Manipulation. R package version 1.0.2. https://CRAN.R-project.org/package=dplyr
+
+Wickham et al., (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686,
+https://doi.org/10.21105/joss.01686
+
+
+Stefan Milton Bache and Hadley Wickham (2014). magrittr: A Forward-Pipe Operator for R. R package version
+1.5. https://CRAN.R-project.org/package=magrittr
+
+Original S code by Richard A. Becker, Allan R. Wilks. R version by Ray Brownrigg. Enhancements by Thomas P
+Minka and Alex Deckmyn. (2018). maps: Draw Geographical Maps. R package version 3.3.0.
+https://CRAN.R-project.org/package=maps
+
+C. Sievert. Interactive Web-Based Data Visualization with R, plotly, and shiny. Chapman and Hall/CRC
+Florida, 2020.
+
