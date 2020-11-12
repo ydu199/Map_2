@@ -13,7 +13,7 @@ library(magrittr)
 
 
 #Introduction:
-#Read Data: The data is saved from the data cleaning process,rmd.
+#Read Data: The data is saved from the data cleaning process.rmd.
 The Data is collected from the FEMA website.
 ```{r }
 hurr<-read.csv("/Users/duyu/Desktop/MA615/hur.csv")
@@ -74,7 +74,7 @@ plot1<-ggplot() + geom_polygon(data =hurrp, aes(long, lat, group = group,
 plot1
 ```
 
-#Calculating the sum of federalShareObligated in 2009-2020.
+#Calculating the sum of federalShareObligated in 2009-2020
 ```{r}
 hurrd<- hurr %>% 
   group_by(fips, state, county, year) %>% summarize(federal = sum(federalShareObligated))
@@ -82,7 +82,7 @@ head(hurrd,8)
 ```
 
 
-#Using ggplot to draw a map for the total federal share Obligrated of each state.
+#Using ggplot to draw a map for the total federal share Obligrated of each state
 ```{r}
 hurrd <- right_join(hurrd, county, by = c("county", "state"))
 hurrd<-na.omit(hurrd)
@@ -104,7 +104,7 @@ plot2
 #Using ggplotly
 Now,I am trying to use ggplotly to show a clearer map for the previous dataframes.
 ```{r}
-#This map is the same as the first map.
+#This map is improved from the first map.
 library(plotly)
 library(dplyr)
 state<-state
